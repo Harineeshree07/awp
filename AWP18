@@ -1,0 +1,14 @@
+clc; clear; close all;
+c = 3e8; f = 900e6; lam = c/f;            % 900 MHz
+h1 = 30; h2 = 1.5; Pt = 1; Gt = 1; Gr = 1;  % heights (m), power (W), gains
+d = logspace(1.5,4.5,400);                % distance (m)
+Pfs = Pt*Gt*Gr*(lam./(4*pi*d)).^2;               % Friis free-space received power
+r1 = sqrt(d.^2 + (h1-h2)^2);                     % direct path (m)
+r2 = sqrt(d.^2 + (h1+h2)^2);                     % reflected path (m)
+dphi = 2*pi*(r2 - r1)/lam;                       % phase difference (rad)
+Ptr = Pt*Gt*Gr*(lam./(4*pi*r1)).^2 .* abs(1 - exp(-1j*dphi)).^2;  % two-ray, Gamma = -1
+semilogx(d,10*log10(Pfs/Pt),d,10*log10(Ptr/Pt),'LineWidth',1.5); grid on;
+xlabel('Distance (m)'); ylabel('Path gain (dB)'); legend('Free space','Two-ray');
+d_b = 4*h1*h2/lam                                % breakpoint distance (m)
+dh_1 = 3.57*(sqrt(h1) + sqrt(h2))                % radio horizon, k = 1 (km)
+dh_43 = 4.12*(sqrt(h1) + sqrt(h2))               % radio horizon, k = 4/3 (km)
