@@ -1,0 +1,21 @@
+clc; clear; close all;
+mu0 = 4*pi*1e-7; c = 3e8;
+sigma_r = 3.5e7/5.8e7; mu_r = 1; t = 1e-3;   % Aluminium, 1 mm (sigma_r relative to copper)
+l = 0.03;                                    % longest aperture dimension (m)
+f = logspace(6,9,400);                       % 1 MHz - 1 GHz
+delta = 1./sqrt(pi*f*mu0*mu_r*5.8e7*sigma_r);  % skin depth (m)
+A = 8.686*t./delta;                          % absorption loss (dB)
+R = 168 - 10*log10(mu_r*f/sigma_r);          % reflection loss (dB)
+B = 20*log10(abs(1 - exp(-2*t./delta)));     % multiple-reflection correction (dB)
+SE_mat = min(A + R + B, 150);                % material SE (150 dB measurement range)
+SE_ap  = max(20*log10((c./f)/(2*l)), 0);     % aperture leakage (dB)
+SE_tot = min(SE_mat, SE_ap);                 % aperture-limited SE
+
+E_un = 60; f0 = 1e9;                         % unshielded emission (dBuV/m @10 m), test frequency
+lim = 30*(f0 < 230e6) + 37*(f0 >= 230e6);    % CISPR 32 Class B limit (dBuV/m @10 m)
+SE0 = interp1(f, SE_tot, f0);                % SE at f0
+margin = lim - (E_un - SE0)                  % compliance margin (dB), need >= 6 dB
+l_max = (c/f0)/(2*10^((E_un - lim + 6)/20))  % largest aperture for 6 dB margin (m)
+
+semilogx(f/1e6,SE_mat,f/1e6,SE_ap,'--',f/1e6,SE_tot,'LineWidth',1.5); grid on;
+xlabel('Frequency (MHz)'); ylabel('SE (dB)'); legend('Material','Aperture','Total');
