@@ -1,0 +1,18 @@
+clc; clear; close all;
+fc = 9; hb = 200; ym = 100;               % MHz, km (parabolic layer)
+f = linspace(0.5,8.95,300);
+hv = hb + (ym/2)*(f/fc).*log((1+f/fc)./(1-f/fc));  % virtual height h'(f) (km)
+figure; plot(f,hv,'LineWidth',1.5); grid on; xlabel('f (MHz)'); ylabel("h' (km)");
+dt = 2e-3; hv_pulse = 3e8*dt/2/1e3        % h' = c*dt/2 (km)
+
+T = 288; P = 1013; e = 10;                % K, hPa, hPa
+N0 = 77.6/T*(P + 4810*e/T)                % surface refractivity (N-units)
+z = 0:5:400;                              % height (m)
+grad = -40*ones(size(z)); grad(z>=100 & z<150) = -300;  % dN/dh (N-units/km)
+N = N0 + cumtrapz(z/1e3, grad);           % refractivity profile
+M = N + 0.157*z;                          % modified refractivity
+trap = grad < -157;                       % trapping layer (dM/dh < 0)
+a = 6371; k = 1./(1 + a*grad*1e-6);       % effective earth-radius factor
+d_hor = 3.57*sqrt(k(1))*(sqrt(30) + sqrt(1.5))  % radio horizon (km), h1 = 30 m, h2 = 1.5 m
+figure; plot(M,z); hold on; plot(M(trap),z(trap),'r.'); grid on;
+xlabel('Modified refractivity M'); ylabel('Height z (m)');
