@@ -1,0 +1,20 @@
+clc; clear; close all;
+Nmax = 1e12;                              % peak electron density (m^-3)
+fc = 9*sqrt(Nmax)/1e6;                    % critical frequency (MHz)
+hm = 300; ym = 100;                       % layer height and semi-thickness (km)
+h = linspace(hm-ym, hm+ym, 200);
+N = Nmax*(1 - ((h-hm)/ym).^2);            % parabolic layer (m^-3)
+f_test = [6 9 12]*1e6;
+n_peak = sqrt(1 - 81*Nmax./f_test.^2)     % complex => reflection, real => penetration
+
+hp = 300; Re = 6371;                      % virtual height, earth radius (km)
+d = 100:50:4000;                          % ground range (km)
+muf_flat = fc*sqrt(1 + (d/(2*hp)).^2);    % secant law, flat earth
+psi = d/Re;                               % central angle (rad)
+phi0 = atan(Re*sin(psi/2)./((Re + hp) - Re*cos(psi/2)));  % incidence angle, curved earth
+muf_curv = fc./cos(phi0);
+err = 100*(muf_flat - muf_curv)./muf_curv; % flat-earth over-estimate (%)
+f0 = 15; d_skip = 2*hp*sqrt((f0/fc)^2 - 1) % skip distance, flat earth (km)
+
+plot(d,muf_flat,'--',d,muf_curv,'LineWidth',1.5); grid on;
+xlabel('Ground range d (km)'); ylabel('MUF (MHz)'); legend('Flat earth','Curved earth');
