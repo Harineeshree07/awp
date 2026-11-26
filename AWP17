@@ -1,0 +1,18 @@
+clc; clear; close all;
+c = 3e8; f = 1e6; lam = c/f; P = 1;       % 1 MHz, 1 kW (P in kW)
+d = logspace(0,3,400);                    % distance (km)
+sig = [0.01 5];                           % land, sea conductivity (S/m)
+Eg = zeros(2,numel(d));
+for k = 1:2
+    x = 18000*sig(k)/(f/1e6);               % loss term
+    p = pi*(d*1e3)/(lam*x);                 % numerical distance
+    A = (2 + 0.3*p)./(2 + p + 0.6*p.^2);    % Norton attenuation factor
+    Eg(k,:) = 300*sqrt(P)./d .* A;          % ground-wave field (mV/m)
+end
+hv = 100; rho = 0.5;                      % virtual height (km), ionospheric factor
+s = 2*sqrt((d/2).^2 + hv^2);              % sky-wave slant path (km)
+Es = 300*sqrt(P)./s * rho;                % sky-wave field (mV/m)
+loglog(d,Eg(1,:),d,Eg(2,:),d,Es,'--','LineWidth',1.5); grid on;
+xlabel('Distance d (km)'); ylabel('Field strength (mV/m)');
+legend('Ground wave (land)','Ground wave (sea)','Sky wave');
+[~,k] = min(abs(Eg(1,:) - Es)); d_cross = d(k)   % crossover distance (km)
